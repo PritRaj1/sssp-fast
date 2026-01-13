@@ -1,4 +1,5 @@
-use crate::trait::{FloatNum};
+use crate::trait::FloatNum;
+use nalgebra::usize;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Edge<T: FloatNum> {
