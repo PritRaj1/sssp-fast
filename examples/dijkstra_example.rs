@@ -4,7 +4,7 @@ use std::collections::BinaryHeap;
 use std::fs;
 
 use common::gif_utils::{png_to_gif_frame, setup_gif};
-use common::maps::{complex_maze, simple_maze, GridMap};
+use common::maps::{maze, GridMap};
 use common::rendering::{render_frame, RenderParams, CELL_SIZE};
 use common::vis::VisState;
 
@@ -113,29 +113,27 @@ fn dijkstra_visual(
     (frames, path)
 }
 
-fn generate_gif(
-    name: &str,
-    map: &GridMap,
-    start: (usize, usize),
-    end: (usize, usize),
-) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Running {}", name);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let (map, start, end) = maze();
 
-    let (frames, path) = dijkstra_visual(map, start, end);
+    println!("Running Dijkstra.");
+    let (frames, path) = dijkstra_visual(&map, start, end);
+    let num_frames = frames.len();
+    let path_len = path.len().saturating_sub(1);
 
     let width = (map.cols as u32 * CELL_SIZE) as u16;
     let height = (map.rows as u32 * CELL_SIZE + 40) as u16;
 
-    let gif_path = format!("examples/gifs/{}.gif", name);
-    let png_path = "examples/gifs/_temp_frame.png";
+    let gif_path = "examples/gifs/dijkstra.gif";
+    let png_path = "examples/gifs/_temp.png";
 
-    let mut encoder = setup_gif(&gif_path, width, height)?;
+    let mut encoder = setup_gif(gif_path, width, height)?;
 
     for (i, frame) in frames.iter().enumerate() {
-        let title = if i < frames.len() - 10 {
+        let title = if i < num_frames - 10 {
             format!("Dijkstra: Step {}", i)
         } else {
-            format!("Path identified in {} steps", path.len().saturating_sub(1))
+            format!("Path: {} steps", path_len)
         };
 
         render_frame(
@@ -153,18 +151,7 @@ fn generate_gif(
     }
 
     fs::remove_file(png_path).ok();
-    println!("  Saved to {}", gif_path);
+    println!("Saved to {}", gif_path);
 
-    Ok(())
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (map, start, end) = simple_maze();
-    generate_gif("dijkstra_simple", &map, start, end)?;
-
-    let (map, start, end) = complex_maze();
-    generate_gif("dijkstra_complex", &map, start, end)?;
-
-    println!("\nGIFs saved to examples/gifs/");
     Ok(())
 }

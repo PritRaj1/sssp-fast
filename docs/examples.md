@@ -5,7 +5,7 @@ GIFs showing SSSP algorithm finding the shortest path through a pre-determined m
 ## Run
 
 ```bash
-cargo run --release --example dijkstra_example
+cargo run --example dijkstra_example
 ```
 
 GIFs in `examples/gifs/`.
