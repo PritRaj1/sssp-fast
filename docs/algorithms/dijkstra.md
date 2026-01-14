@@ -1,8 +1,13 @@
 # Dijkstra's Algorithm
 
-## Overview
 
-Dijkstra's algorithm finds shortest paths from a source vertex to all other vertices in a weighted graph with non-negative edge weights.
+<div align="center">
+
+<img src="../examples/gifs/dijkstra_complex.gif" width="200" alt="Dijkstra Example">
+
+<p><b>Figure:</b>Dijkstra's algorithm finds shortest paths from a source vertex to all other vertices in a weighted graph with non-negative edge weights.</p>
+
+</div>
 
 |  | Complexity |
 |--------|-------|
@@ -37,6 +42,6 @@ let result = dijkstra(&graph, 0, &mut buffers);
 // buffers.path_to(v) = reconstructed path
 ```
 
-## References
+## Ref.
 
 - [The OG himself](https://ir.cwi.nl/pub/9256/9256D.pdf)

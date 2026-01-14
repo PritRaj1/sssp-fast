@@ -16,3 +16,8 @@ ndarray = "0.16.1"
 nalgebra = "0.33.2"
 simba = "0.9.0"
 num-traits = "0.2"
+
+[dev-dependencies]
+plotters = "0.3.7"
+gif = "0.13.1"
+image = "0.25.6"
