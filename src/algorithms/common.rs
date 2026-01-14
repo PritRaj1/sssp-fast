@@ -19,7 +19,7 @@ impl SsspConfig {
 
     #[inline]
     pub fn should_stop(&self, vertex: usize) -> bool {
-        self.early_stop.map_or(false, |t| t == vertex)
+        self.early_stop == Some(vertex)
     }
 }
 
