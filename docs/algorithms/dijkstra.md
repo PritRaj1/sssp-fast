@@ -17,6 +17,41 @@
 - All edge weights must be **non-negative**
 - Graph can be directed or undirected
 
+## Pipeline
+
+Always expand the closest unvisited node. Use a priority queue to find the minimum efficiently.
+
+```
+dist[start] = 0
+dist[all others] = infinity
+queue.push(start)
+
+while queue not empty:
+    u = queue.pop_min()
+    if visited[u]: continue
+    visited[u] = true
+
+    for each edge (u -> v, weight w):
+        if dist[u] + w < dist[v]:
+            dist[v] = dist[u] + w
+            parent[v] = u
+            queue.push(v)
+```
+
+```mermaid
+flowchart TD
+    A[Init: dist start = 0, push to queue] --> B{Queue empty?}
+    B -->|No| C[Pop min node u]
+    B -->|Yes| G[Done]
+    C --> D{Visited?}
+    D -->|Yes| B
+    D -->|No| E[Mark visited]
+    E --> F[Relax edges from u]
+    F --> B
+```
+
+When a node is popped, its distance is final. Any alternative path must go through an unvisited node, which has distance >= the popped node (otherwise we would have popped that one). Negative edges break this invariant.
+
 ## Configuration
 
 ```rust
