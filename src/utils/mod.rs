@@ -1,8 +1,7 @@
-pub mod trait;
-pub mod graph;
-pub mod buffers;
+mod buffers;
+mod graph;
+mod relaxation;
 
-pub use trait::{FloatNum}
-pub use graph::{Graph, AdjListGraph, Edge};
 pub use buffers::{SsspBuffers, PARENT_NONE};
-
+pub use graph::{AdjListGraph, Edge, FloatNumber, Graph};
+pub use relaxation::{relax, relax_with, RelaxResult};

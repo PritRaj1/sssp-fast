@@ -1,42 +1,65 @@
-use crate::trait::FloatNum;
-use nalgebra::usize;
+use nalgebra::RealField;
+use num_traits::Float;
 
+/// Generic type for weights.
+pub trait FloatNumber: Copy + RealField + Float + std::fmt::Debug + Send + Sync + 'static {}
+
+impl<T> FloatNumber for T where T: Copy + RealField + Float + std::fmt::Debug + Send + Sync + 'static
+{}
+
+/// Weighted directed edge.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Edge<T: FloatNum> {
+pub struct Edge<T: FloatNumber> {
     pub to: usize,
     pub w: T,
 }
 
-pub trait Graph<T: FloatNum> {
-    fn n(&self) -> usize;
-    fn for_each_out_edge(&self, u: usize, f: impl FnMut(usize, T));
+impl<T: FloatNumber> Edge<T> {
+    pub fn new(to: usize, w: T) -> Self {
+        Self { to, w }
+    }
 }
 
+pub trait Graph<T: FloatNumber> {
+    fn n(&self) -> usize;
+    fn for_each_out_edge<F: FnMut(usize, T)>(&self, u: usize, f: F);
+}
+
+/// Adjacency list graph.
 #[derive(Clone, Debug)]
-pub struct AdjListGraph<T: FloatNum> {
+pub struct AdjListGraph<T: FloatNumber> {
     n: usize,
     adj: Vec<Vec<Edge<T>>>,
 }
 
-impl<T: FloatNum> AdjListGraph<T> {
+impl<T: FloatNumber> AdjListGraph<T> {
     pub fn new(n: usize) -> Self {
-        Self { n, adj: vec![Vec::new(); n] }
+        Self {
+            n,
+            adj: vec![Vec::new(); n],
+        }
     }
 
     pub fn add_edge(&mut self, u: usize, v: usize, w: T) {
-        assert!(u < self.n && v < self.n);
-        self.adj[u].push(Edge { to: v, w });
+        debug_assert!(u < self.n && v < self.n);
+        self.adj[u].push(Edge::new(v, w));
     }
 
     pub fn neighbors(&self, u: usize) -> &[Edge<T>] {
         &self.adj[u]
     }
+
+    pub fn m(&self) -> usize {
+        self.adj.iter().map(|edges| edges.len()).sum()
+    }
 }
 
-impl<T: FloatNum> Graph<T> for AdjListGraph<T> {
-    fn n(&self) -> usize { self.n }
+impl<T: FloatNumber> Graph<T> for AdjListGraph<T> {
+    fn n(&self) -> usize {
+        self.n
+    }
 
-    fn for_each_out_edge(&self, u: usize, mut f: impl FnMut(usize, T)) {
+    fn for_each_out_edge<F: FnMut(usize, T)>(&self, u: usize, mut f: F) {
         for e in &self.adj[u] {
             f(e.to, e.w);
         }
