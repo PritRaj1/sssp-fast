@@ -1,0 +1,93 @@
+use sssp_fast::{BinaryHeap, FibonacciHeap, PriorityQueue};
+
+mod binary_heap {
+    use super::*;
+
+    #[test]
+    fn test_min_heap_order() {
+        let mut heap = BinaryHeap::<f64>::new();
+        heap.push(5.0, 0);
+        heap.push(1.0, 1);
+        heap.push(3.0, 2);
+
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+        assert_eq!(heap.pop().unwrap().dist, 3.0);
+        assert_eq!(heap.pop().unwrap().dist, 5.0);
+        assert!(heap.pop().is_none());
+    }
+
+    #[test]
+    fn test_with_capacity() {
+        let heap = BinaryHeap::<f64>::with_capacity(100);
+        assert!(heap.is_empty());
+    }
+
+    #[test]
+    fn test_len_and_clear() {
+        let mut heap = BinaryHeap::<f64>::new();
+        heap.push(1.0, 0);
+        heap.push(2.0, 1);
+        assert_eq!(heap.len(), 2);
+
+        heap.clear();
+        assert!(heap.is_empty());
+        assert_eq!(heap.len(), 0);
+    }
+}
+
+mod fibonacci_heap {
+    use super::*;
+
+    #[test]
+    fn test_min_heap_order() {
+        let mut heap = FibonacciHeap::<f64>::new();
+        heap.push(5.0, 0);
+        heap.push(1.0, 1);
+        heap.push(3.0, 2);
+
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+        assert_eq!(heap.pop().unwrap().dist, 3.0);
+        assert_eq!(heap.pop().unwrap().dist, 5.0);
+        assert!(heap.pop().is_none());
+    }
+
+    #[test]
+    fn test_duplicate_distances() {
+        let mut heap = FibonacciHeap::<f64>::new();
+        heap.push(1.0, 0);
+        heap.push(1.0, 1);
+        heap.push(1.0, 2);
+
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut heap = FibonacciHeap::<f64>::new();
+        heap.push(1.0, 0);
+        heap.push(2.0, 1);
+        heap.push(3.0, 2);
+
+        heap.clear();
+        assert!(heap.is_empty());
+        assert_eq!(heap.len(), 0);
+        assert!(heap.pop().is_none());
+    }
+
+    #[test]
+    fn test_interleaved_push_pop() {
+        let mut heap = FibonacciHeap::<f64>::new();
+
+        heap.push(5.0, 0);
+        heap.push(3.0, 1);
+        assert_eq!(heap.pop().unwrap().dist, 3.0);
+
+        heap.push(1.0, 2);
+        heap.push(4.0, 3);
+        assert_eq!(heap.pop().unwrap().dist, 1.0);
+        assert_eq!(heap.pop().unwrap().dist, 4.0);
+        assert_eq!(heap.pop().unwrap().dist, 5.0);
+    }
+}

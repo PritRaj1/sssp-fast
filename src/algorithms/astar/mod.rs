@@ -4,6 +4,7 @@ mod config;
 pub use algo::AStar;
 pub use config::{AStarConfig, FnHeuristic, Heuristic, ZeroHeuristic};
 
+use crate::algorithms::heaps::BinaryHeap;
 use crate::algorithms::{SsspAlgorithm, SsspResult};
 use crate::utils::{FloatNumber, Graph, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
@@ -22,7 +23,8 @@ where
     G: Graph<T>,
     DefaultAllocator: Allocator<N>,
 {
-    AStar::new(target, FnHeuristic::new(heuristic)).run(graph, source, buffers)
+    AStar::<T, _, BinaryHeap<T>>::new(target, FnHeuristic::new(heuristic))
+        .run(graph, source, buffers)
 }
 
 /// One-shot A* with custom heuristic.
@@ -40,5 +42,5 @@ where
     H: Heuristic<T>,
     DefaultAllocator: Allocator<N>,
 {
-    AStar::new(target, heuristic).run(graph, source, buffers)
+    AStar::<T, H, BinaryHeap<T>>::new(target, heuristic).run(graph, source, buffers)
 }

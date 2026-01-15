@@ -1,36 +1,41 @@
+use crate::algorithms::heaps::{BinaryHeap, PriorityQueue};
 use crate::algorithms::HasSsspConfig;
 use crate::algorithms::{finalize_sssp, init_sssp, SsspAlgorithm, SsspAlgorithmInfo, SsspResult};
 use crate::utils::{relax_with, FloatNumber, Graph, RelaxResult, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
+use std::marker::PhantomData;
 
 use super::config::DijkstraConfig;
-use super::heap::MinHeap;
 
 #[derive(Debug)]
-pub struct Dijkstra<T: FloatNumber> {
+pub struct Dijkstra<T: FloatNumber, H: PriorityQueue<T> = BinaryHeap<T>> {
     config: DijkstraConfig,
-    heap: MinHeap<T>,
+    heap: H,
+    _phantom: PhantomData<T>,
 }
 
-impl<T: FloatNumber> Dijkstra<T> {
+impl<T: FloatNumber, H: PriorityQueue<T>> Dijkstra<T, H> {
     pub fn new() -> Self {
         Self {
             config: DijkstraConfig::default(),
-            heap: MinHeap::new(),
+            heap: H::new(),
+            _phantom: PhantomData,
         }
     }
 
     pub fn with_config(config: DijkstraConfig) -> Self {
         Self {
             config,
-            heap: MinHeap::new(),
+            heap: H::new(),
+            _phantom: PhantomData,
         }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             config: DijkstraConfig::default(),
-            heap: MinHeap::with_capacity(capacity),
+            heap: H::with_capacity(capacity),
+            _phantom: PhantomData,
         }
     }
 
@@ -43,13 +48,13 @@ impl<T: FloatNumber> Dijkstra<T> {
     }
 }
 
-impl<T: FloatNumber> Default for Dijkstra<T> {
+impl<T: FloatNumber> Default for Dijkstra<T, BinaryHeap<T>> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: FloatNumber> SsspAlgorithmInfo for Dijkstra<T> {
+impl<T: FloatNumber, H: PriorityQueue<T>> SsspAlgorithmInfo for Dijkstra<T, H> {
     fn name(&self) -> &'static str {
         "Dijkstra"
     }
@@ -59,11 +64,12 @@ impl<T: FloatNumber> SsspAlgorithmInfo for Dijkstra<T> {
     }
 }
 
-impl<T, N, G> SsspAlgorithm<T, N, G> for Dijkstra<T>
+impl<T, N, G, H> SsspAlgorithm<T, N, G> for Dijkstra<T, H>
 where
     T: FloatNumber,
     N: Dim,
     G: Graph<T>,
+    H: PriorityQueue<T>,
     DefaultAllocator: Allocator<N>,
 {
     fn run(&mut self, graph: &G, source: usize, buffers: &mut SsspBuffers<T, N>) -> SsspResult<T> {
@@ -79,7 +85,6 @@ where
             let u = entry.vertex;
             let d_u = entry.dist;
 
-            // Lazy delete, skip stale entries
             if self.config.lazy_deletion && d_u > buffers.dist[u] {
                 continue;
             }
@@ -90,7 +95,6 @@ where
 
             iterations += 1;
 
-            // Relax outgoing edges
             graph.for_each_out_edge(u, |v, w| {
                 debug_assert!(w >= T::zero(), "Dijkstra requires non-negative weights");
 

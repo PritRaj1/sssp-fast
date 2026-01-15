@@ -1,58 +1,66 @@
-use crate::algorithms::dijkstra::MinHeap;
+use crate::algorithms::heaps::{BinaryHeap, PriorityQueue};
 use crate::algorithms::HasSsspConfig;
 use crate::algorithms::{finalize_sssp, init_sssp, SsspAlgorithm, SsspAlgorithmInfo, SsspResult};
 use crate::utils::{relax_with, FloatNumber, Graph, RelaxResult, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
+use std::marker::PhantomData;
 
 use super::config::{AStarConfig, Heuristic};
 
 #[derive(Debug)]
-pub struct AStar<T: FloatNumber, H: Heuristic<T>> {
-    config: AStarConfig<H>,
-    heap: MinHeap<T>, // Stores f(v) = g(v) + h(v)
+pub struct AStar<T: FloatNumber, Heur: Heuristic<T>, H: PriorityQueue<T> = BinaryHeap<T>> {
+    config: AStarConfig<Heur>,
+    heap: H,
+    _phantom: PhantomData<T>,
 }
 
-impl<T: FloatNumber, H: Heuristic<T>> AStar<T, H> {
-    pub fn new(target: usize, heuristic: H) -> Self {
+impl<T: FloatNumber, Heur: Heuristic<T>, H: PriorityQueue<T>> AStar<T, Heur, H> {
+    pub fn new(target: usize, heuristic: Heur) -> Self {
         Self {
             config: AStarConfig::new(target, heuristic),
-            heap: MinHeap::new(),
+            heap: H::new(),
+            _phantom: PhantomData,
         }
     }
 
-    pub fn with_config(config: AStarConfig<H>) -> Self {
+    pub fn with_config(config: AStarConfig<Heur>) -> Self {
         Self {
             config,
-            heap: MinHeap::new(),
+            heap: H::new(),
+            _phantom: PhantomData,
         }
     }
 
-    pub fn with_capacity(target: usize, heuristic: H, capacity: usize) -> Self {
+    pub fn with_capacity(target: usize, heuristic: Heur, capacity: usize) -> Self {
         Self {
             config: AStarConfig::new(target, heuristic),
-            heap: MinHeap::with_capacity(capacity),
+            heap: H::with_capacity(capacity),
+            _phantom: PhantomData,
         }
     }
 
-    pub fn config(&self) -> &AStarConfig<H> {
+    pub fn config(&self) -> &AStarConfig<Heur> {
         &self.config
     }
 
-    pub fn config_mut(&mut self) -> &mut AStarConfig<H> {
+    pub fn config_mut(&mut self) -> &mut AStarConfig<Heur> {
         &mut self.config
     }
 }
 
-impl<T: FloatNumber, H: Heuristic<T> + Default> Default for AStar<T, H> {
+impl<T: FloatNumber, Heur: Heuristic<T> + Default> Default for AStar<T, Heur, BinaryHeap<T>> {
     fn default() -> Self {
         Self {
             config: AStarConfig::default(),
-            heap: MinHeap::new(),
+            heap: BinaryHeap::new(),
+            _phantom: PhantomData,
         }
     }
 }
 
-impl<T: FloatNumber, H: Heuristic<T>> SsspAlgorithmInfo for AStar<T, H> {
+impl<T: FloatNumber, Heur: Heuristic<T>, H: PriorityQueue<T>> SsspAlgorithmInfo
+    for AStar<T, Heur, H>
+{
     fn name(&self) -> &'static str {
         "A*"
     }
@@ -62,12 +70,13 @@ impl<T: FloatNumber, H: Heuristic<T>> SsspAlgorithmInfo for AStar<T, H> {
     }
 }
 
-impl<T, N, G, H> SsspAlgorithm<T, N, G> for AStar<T, H>
+impl<T, N, G, Heur, H> SsspAlgorithm<T, N, G> for AStar<T, Heur, H>
 where
     T: FloatNumber,
     N: Dim,
     G: Graph<T>,
-    H: Heuristic<T>,
+    Heur: Heuristic<T>,
+    H: PriorityQueue<T>,
     DefaultAllocator: Allocator<N>,
 {
     fn run(&mut self, graph: &G, source: usize, buffers: &mut SsspBuffers<T, N>) -> SsspResult<T> {
@@ -78,7 +87,6 @@ where
         init_sssp(buffers, source);
         self.heap.clear();
 
-        // f(source) = g(source) + h(source) = 0 + h(source)
         let h_source = self.config.heuristic.estimate(source, target);
         self.heap.push(h_source, source);
 
@@ -89,8 +97,6 @@ where
             let f_u = entry.dist;
             let g_u = buffers.dist[u];
 
-            // Lazy delete, skip if found better
-            // f_u should equal g_u + h(u) if entry is current
             let h_u = self.config.heuristic.estimate(u, target);
             if self.config.lazy_deletion && f_u > g_u + h_u {
                 continue;
@@ -102,7 +108,6 @@ where
 
             iterations += 1;
 
-            // Relax outgoing
             graph.for_each_out_edge(u, |v, w| {
                 debug_assert!(w >= T::zero(), "A* requires non-negative weights");
 
@@ -116,7 +121,7 @@ where
                 ) {
                     let h_v = self.config.heuristic.estimate(v, target);
                     let f_v = buffers.dist[v] + h_v;
-                    self.heap.push(f_v, v); // Push with f(v) = g(v) + h(v)
+                    self.heap.push(f_v, v);
                 }
             });
         }

@@ -2,14 +2,16 @@ mod common;
 
 use common::{assertions::EPS_F64 as EPS, *};
 use nalgebra::Dyn;
-use sssp_fast::{parallel_sssp, Dijkstra};
+use sssp_fast::{parallel_sssp, BinaryHeap, Dijkstra};
 
 #[test]
 fn test_multi_source_distances() {
     let g = linear_undirected(5, 1.0);
     let sources = vec![0, 2, 4];
 
-    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || Dijkstra::new());
+    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || {
+        Dijkstra::<f64, BinaryHeap<f64>>::new()
+    });
 
     assert!((result.dist(0, 4).unwrap() - 4.0).abs() < EPS); // 0 -> 4
     assert!((result.dist(1, 0).unwrap() - 2.0).abs() < EPS); // 2 -> 0
@@ -22,7 +24,9 @@ fn test_multi_source_unreachable() {
     let g = disconnected(6, 1.0);
     let sources = vec![0, 3];
 
-    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || Dijkstra::new());
+    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || {
+        Dijkstra::<f64, BinaryHeap<f64>>::new()
+    });
 
     assert!((result.dist(0, 2).unwrap() - 2.0).abs() < EPS); // 0 can reach 2
     assert!(result.dist(0, 3).unwrap().is_infinite()); // 0 cannot reach 3
@@ -34,7 +38,9 @@ fn test_all_pairs() {
     let g = complete(50, 1.0);
     let sources: Vec<usize> = (0..50).collect();
 
-    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || Dijkstra::new());
+    let result = parallel_sssp::<f64, Dyn, _, _, _>(&g, &sources, || {
+        Dijkstra::<f64, BinaryHeap<f64>>::new()
+    });
 
     for i in 0..50 {
         for j in 0..50 {

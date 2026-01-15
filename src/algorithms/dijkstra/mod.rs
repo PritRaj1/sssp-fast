@@ -1,11 +1,10 @@
 mod algo;
 mod config;
-mod heap;
 
 pub use algo::Dijkstra;
 pub use config::DijkstraConfig;
-pub use heap::{HeapEntry, MinHeap};
 
+use crate::algorithms::heaps::BinaryHeap;
 use crate::algorithms::{SsspAlgorithm, SsspResult};
 use crate::utils::{FloatNumber, Graph, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
@@ -22,7 +21,7 @@ where
     G: Graph<T>,
     DefaultAllocator: Allocator<N>,
 {
-    Dijkstra::new().run(graph, source, buffers)
+    Dijkstra::<T, BinaryHeap<T>>::new().run(graph, source, buffers)
 }
 
 pub fn dijkstra_to<T, N, G>(
@@ -37,5 +36,6 @@ where
     G: Graph<T>,
     DefaultAllocator: Allocator<N>,
 {
-    Dijkstra::with_config(DijkstraConfig::with_target(target)).run(graph, source, buffers)
+    Dijkstra::<T, BinaryHeap<T>>::with_config(DijkstraConfig::with_target(target))
+        .run(graph, source, buffers)
 }
