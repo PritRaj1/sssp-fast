@@ -4,6 +4,7 @@ pub mod utils;
 pub use algorithms::{
     astar_with, cheeky_astar, AStar, AStarConfig, FnHeuristic, Heuristic, ZeroHeuristic,
 };
+pub use algorithms::{bellman_ford_to, cheeky_bellman_ford, BellmanFord, BellmanFordConfig};
 pub use algorithms::{cheeky_dijkstra, dijkstra_to, Dijkstra, DijkstraConfig};
 pub use algorithms::{BinaryHeap, FibonacciHeap, HeapEntry, PriorityQueue};
 pub use algorithms::{SsspAlgorithm, SsspAlgorithmInfo, SsspResult};

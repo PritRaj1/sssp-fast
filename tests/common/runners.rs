@@ -1,6 +1,7 @@
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
 use sssp_fast::{FloatNumber, Graph, SsspAlgorithm, SsspAlgorithmInfo, SsspBuffers, SsspResult};
 
+pub use sssp_fast::cheeky_bellman_ford;
 pub use sssp_fast::cheeky_dijkstra;
 
 pub fn run_sssp<T, N, G, A>(
