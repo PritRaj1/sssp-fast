@@ -157,17 +157,17 @@ impl<T: FloatNumber> PriorityQueue<T> for FibonacciHeap<T> {
             };
         }
 
-        let min_node = if min_prev.is_none() {
-            let mut min = self.roots.take().unwrap();
-            self.roots = min.sibling.take();
-            min
-        } else {
+        let min_node = if let Some(prev_ptr) = min_prev {
             unsafe {
-                let prev_node = &mut *min_prev.unwrap();
+                let prev_node = &mut *prev_ptr;
                 let mut min = prev_node.sibling.take().unwrap();
                 prev_node.sibling = min.sibling.take();
                 min
             }
+        } else {
+            let mut min = self.roots.take().unwrap();
+            self.roots = min.sibling.take();
+            min
         };
 
         let result = min_node.entry;
