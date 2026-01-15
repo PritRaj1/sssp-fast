@@ -6,6 +6,9 @@ pub use algorithms::{
 };
 pub use algorithms::{cheeky_dijkstra, dijkstra_to, Dijkstra, DijkstraConfig};
 pub use algorithms::{SsspAlgorithm, SsspAlgorithmInfo, SsspResult};
-pub use utils::{AdjListGraph, Edge, FloatNumber, Graph, SsspBuffers, PARENT_NONE};
+pub use utils::{
+    all_pairs_sssp, parallel_sssp, AdjListGraph, Edge, FloatNumber, Graph, MultiSourceResult,
+    SsspBuffers, PARENT_NONE,
+};
 
 pub use nalgebra::{Const, Dyn};

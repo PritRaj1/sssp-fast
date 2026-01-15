@@ -1365,6 +1365,7 @@ dependencies = [
  "ndarray",
  "num-traits",
  "plotters",
+ "rayon",
  "simba",
 ]
 
