@@ -1,13 +1,13 @@
 # Dijkstra's Algorithm
 
+> Dijkstra's algorithm finds shortest paths from a source vertex to all other vertices in a weighted graph with non-negative edge weights.
 
-<div align="center">
-
-<img src="../examples/gifs/dijkstra.gif" width="200" alt="Dijkstra Example">
-
-<p><b>Figure:</b>Dijkstra's algorithm finds shortest paths from a source vertex to all other vertices in a weighted graph with non-negative edge weights.</p>
-
-</div>
+<table>
+  <tr>
+    <td align="center"><img src="../examples/gifs/dijkstra_maze.gif" width="300"/><br/><b>Maze</b></td>
+    <td align="center"><img src="../examples/gifs/dijkstra_euclid.gif" width="300"/><br/><b>Undirected Euclidean graph</b></td>
+  </tr>
+</table>
 
 |  | Complexity |
 |--------|-------|
@@ -50,7 +50,21 @@ flowchart TD
     F --> B
 ```
 
-When a node is popped, its distance is final. Any alternative path must go through an unvisited node, which has distance >= the popped node (otherwise we would have popped that one). Negative edges break this invariant.
+Let $\delta(s, v)$ be the true shortest path distance from source $s$ to $v$.
+
+**Relaxation.** For edge $(u, v)$ with weight $w$:
+
+$$
+d[v] \leftarrow \min(d[v], \; d[u] + w)
+$$
+
+Any shortest path $s \rightsquigarrow v$ through $u$ has length $\delta(s, u) + w(u, v)$.
+
+**Greedy invariant.** When node $u$ is popped from the queue: $d[u] = \delta(s, u)$.
+
+*Proof-ish* Suppose not. Then some shorter path $s \rightsquigarrow u$ exists through an unvisited node $x$. But $d[x] \geq d[u]$ (otherwise $x$ would have been popped first), and $w(x, u) \geq 0$, so $d[x] + w(x, u) \geq d[u]$. Contradiction.
+
+**Non-negative weights?** If $w < 0$, we could have $d[x] + w < d[u]$ even when $d[x] > d[u]$, breaking the invariant.
 
 ## Configuration
 
