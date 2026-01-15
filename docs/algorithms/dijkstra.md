@@ -4,8 +4,8 @@
 
 <table>
   <tr>
-    <td align="center"><img src="../examples/gifs/dijkstra_maze.gif" width="300"/><br/><b>Maze</b></td>
-    <td align="center"><img src="../examples/gifs/dijkstra_euclid.gif" width="300"/><br/><b>Undirected Euclidean graph</b></td>
+    <td align="center"><img src="../../examples/gifs/dijkstra_maze.gif" width="300"/><br/><b>Maze</b></td>
+    <td align="center"><img src="../../examples/gifs/dijkstra_euclid.gif" width="300"/><br/><b>Undirected Euclidean graph</b></td>
   </tr>
 </table>
 
