@@ -2,6 +2,13 @@
 
 > A* finds the shortest path from a source to a target by combining Dijkstra's algorithm with a heuristic that estimates distance to goal.
 
+<table>
+  <tr>
+    <td align="center"><img src="../../examples/gifs/astar_maze.gif" width="300"/><br/><b>Maze (Manhattan)</b></td>
+    <td align="center"><img src="../../examples/gifs/astar_euclid.gif" width="300"/><br/><b>Euclidean graph</b></td>
+  </tr>
+</table>
+
 |  | Complexity |
 |--------|-------|
 | Time | O((V + E) log V) worst case, often much better |
