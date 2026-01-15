@@ -103,8 +103,44 @@ pub fn star<T: FloatNumber>(n: usize, weight: T) -> AdjListGraph<T> {
 pub fn linear_undirected<T: FloatNumber>(n: usize, weight: T) -> AdjListGraph<T> {
     let mut g = AdjListGraph::new(n);
     for i in 0..n.saturating_sub(1) {
-        g.add_edge(i, i + 1, weight);
-        g.add_edge(i + 1, i, weight);
+        add_undirected_edge(&mut g, i, i + 1, weight);
+    }
+    g
+}
+
+/// Add undirected edge (both directions).
+pub fn add_undirected_edge<T: FloatNumber>(g: &mut AdjListGraph<T>, u: usize, v: usize, w: T) {
+    g.add_edge(u, v, w);
+    g.add_edge(v, u, w);
+}
+
+/// Undirected grid graph.
+pub fn grid_undirected<T: FloatNumber>(rows: usize, cols: usize, weight: T) -> AdjListGraph<T> {
+    let n = rows * cols;
+    let mut g = AdjListGraph::new(n);
+    for r in 0..rows {
+        for c in 0..cols {
+            let v = r * cols + c;
+            if c + 1 < cols {
+                add_undirected_edge(&mut g, v, v + 1, weight);
+            }
+            if r + 1 < rows {
+                add_undirected_edge(&mut g, v, v + cols, weight);
+            }
+        }
+    }
+    g
+}
+
+/// Disconnected undirected graph: two components.
+pub fn disconnected_undirected<T: FloatNumber>(n: usize, weight: T) -> AdjListGraph<T> {
+    let mut g = AdjListGraph::new(n);
+    let mid = n / 2;
+    for i in 0..mid.saturating_sub(1) {
+        add_undirected_edge(&mut g, i, i + 1, weight);
+    }
+    for i in mid..n.saturating_sub(1) {
+        add_undirected_edge(&mut g, i, i + 1, weight);
     }
     g
 }

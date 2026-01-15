@@ -1,4 +1,4 @@
-use crate::utils::{FloatNumber, Graph, SsspBuffers};
+use crate::utils::{FloatNumber, Graph, MstBuffers, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
 
 // =============================================================================
@@ -50,6 +50,14 @@ pub struct SsspResult<T: FloatNumber> {
     pub total_distance: T,
 }
 
+#[derive(Clone, Debug)]
+pub struct MstResult<T: FloatNumber> {
+    pub iterations: usize,
+    pub vertices_in_mst: usize,
+    pub total_weight: T,
+    pub is_connected: bool,
+}
+
 // =============================================================================
 // Traits
 // =============================================================================
@@ -67,6 +75,20 @@ where
     DefaultAllocator: Allocator<N>,
 {
     fn run(&mut self, graph: &G, source: usize, buffers: &mut SsspBuffers<T, N>) -> SsspResult<T>;
+}
+
+pub trait MstAlgorithmInfo {
+    fn name(&self) -> &'static str;
+}
+
+pub trait MstAlgorithm<T, N, G>: MstAlgorithmInfo
+where
+    T: FloatNumber,
+    N: Dim,
+    G: Graph<T>,
+    DefaultAllocator: Allocator<N>,
+{
+    fn run(&mut self, graph: &G, source: usize, buffers: &mut MstBuffers<T, N>) -> MstResult<T>;
 }
 
 // =============================================================================
@@ -94,7 +116,7 @@ where
     N: Dim,
     DefaultAllocator: Allocator<N>,
 {
-    let (vertices_reached, total_distance) = compute_stats(buffers);
+    let (vertices_reached, total_distance) = compute_sssp_stats(buffers);
     SsspResult {
         iterations,
         negative_cycle,
@@ -103,7 +125,7 @@ where
     }
 }
 
-fn compute_stats<T, N>(buffers: &SsspBuffers<T, N>) -> (usize, T)
+fn compute_sssp_stats<T, N>(buffers: &SsspBuffers<T, N>) -> (usize, T)
 where
     T: FloatNumber,
     N: Dim,
@@ -118,4 +140,33 @@ where
         }
     }
     (reached, total)
+}
+
+#[inline]
+pub fn init_mst<T, N>(buffers: &mut MstBuffers<T, N>, source: usize)
+where
+    T: FloatNumber,
+    N: Dim,
+    DefaultAllocator: Allocator<N>,
+{
+    buffers.reset_inf();
+    buffers.set_source(source);
+}
+
+pub fn finalize_mst<T, N>(buffers: &MstBuffers<T, N>, iterations: usize, n: usize) -> MstResult<T>
+where
+    T: FloatNumber,
+    N: Dim,
+    DefaultAllocator: Allocator<N>,
+{
+    let vertices_in_mst = buffers.vertices_in_mst();
+    let total_weight = buffers.total_weight();
+    let is_connected = vertices_in_mst == n;
+
+    MstResult {
+        iterations,
+        vertices_in_mst,
+        total_weight,
+        is_connected,
+    }
 }

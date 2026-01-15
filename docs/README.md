@@ -1,6 +1,6 @@
 # SSSP-Fast Documentation
 
-## Algorithms
+## SSSP Algorithms
 
 | Algorithm | Negative Weights | Time Complexity | Doc |
 |-----------|-----------------|-----------------|-----|
@@ -8,3 +8,9 @@
 | Bellman-Ford | Yes | O(VE) | [bellman_ford.md](algorithms/bellman_ford.md) |
 | A* | No | O((V+E) log V) | [a_star.md](algorithms/a_star.md) |
 | Hybrid | Yes | O(m log^(2/3) n) | [hybrid.md](algorithms/hybrid.md) |
+
+## MST Algorithms
+
+| Algorithm | Time Complexity | Doc |
+|-----------|-----------------|-----|
+| Prim | O((V+E) log V) | [prim.md](algorithms/prim.md) |

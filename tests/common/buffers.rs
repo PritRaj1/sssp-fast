@@ -1,5 +1,5 @@
 use nalgebra::{allocator::Allocator, Const, DefaultAllocator, Dim, Dyn};
-use sssp_fast::{FloatNumber, SsspBuffers};
+use sssp_fast::{FloatNumber, MstBuffers, SsspBuffers};
 
 /// Create dynamic buffers.
 pub fn dynamic<T: FloatNumber>(n: usize) -> SsspBuffers<T, Dyn> {
@@ -19,4 +19,9 @@ where
     DefaultAllocator: Allocator<N>,
 {
     SsspBuffers::new_inf(dim)
+}
+
+/// Create dynamic MST buffers.
+pub fn mst_dynamic<T: FloatNumber>(n: usize) -> MstBuffers<T, Dyn> {
+    MstBuffers::new_inf(Dyn(n))
 }
