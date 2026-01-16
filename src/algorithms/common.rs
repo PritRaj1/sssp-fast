@@ -1,4 +1,4 @@
-use crate::utils::{FloatNumber, Graph, MstBuffers, SsspBuffers};
+use crate::utils::{ApspBuffers, FloatNumber, Graph, MstBuffers, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
 
 // =============================================================================
@@ -58,6 +58,25 @@ pub struct MstResult<T: FloatNumber> {
     pub is_connected: bool,
 }
 
+#[derive(Clone, Debug)]
+pub struct ApspResult<T: FloatNumber> {
+    pub iterations: usize,
+    pub negative_cycle: bool,
+    pub pairs_reached: usize,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T: FloatNumber> ApspResult<T> {
+    pub fn new(iterations: usize, negative_cycle: bool, pairs_reached: usize) -> Self {
+        Self {
+            iterations,
+            negative_cycle,
+            pairs_reached,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
 // =============================================================================
 // Traits
 // =============================================================================
@@ -89,6 +108,19 @@ where
     DefaultAllocator: Allocator<N>,
 {
     fn run(&mut self, graph: &G, source: usize, buffers: &mut MstBuffers<T, N>) -> MstResult<T>;
+}
+
+pub trait ApspAlgorithmInfo {
+    fn name(&self) -> &'static str;
+    fn supports_negative_weights(&self) -> bool;
+}
+
+pub trait ApspAlgorithm<T, G>: ApspAlgorithmInfo
+where
+    T: FloatNumber,
+    G: Graph<T>,
+{
+    fn run(&mut self, graph: &G, buffers: &mut ApspBuffers<T>) -> ApspResult<T>;
 }
 
 // =============================================================================

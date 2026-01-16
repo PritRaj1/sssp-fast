@@ -1,0 +1,17 @@
+mod algo;
+mod config;
+
+pub use algo::FloydWarshall;
+pub use config::FloydWarshallConfig;
+
+use crate::algorithms::{ApspAlgorithm, ApspResult};
+use crate::utils::{ApspBuffers, FloatNumber, Graph};
+
+/// One-shot Floyd-Warshall execute.
+pub fn cheeky_floyd_warshall<T, G>(graph: &G, buffers: &mut ApspBuffers<T>) -> ApspResult<T>
+where
+    T: FloatNumber,
+    G: Graph<T> + Sync,
+{
+    FloydWarshall::<T>::new().run(graph, buffers)
+}

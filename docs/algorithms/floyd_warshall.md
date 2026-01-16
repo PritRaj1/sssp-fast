@@ -2,6 +2,13 @@
 
 > Floyd-Warshall computes shortest paths between all pairs of vertices. Handles negative weights, detects negative cycles.
 
+<table>
+  <tr>
+    <td align="center"><img src="../../examples/gifs/_maze.gif" width="300"/><br/><b>Maze</b></td>
+    <td align="center"><img src="../../examples/gifs/_euclid.gif" width="300"/><br/><b>Undirected Euclidean graph</b></td>
+  </tr>
+</table>
+
 |  | Complexity |
 |--------|-------|
 | Time | O(V³) |

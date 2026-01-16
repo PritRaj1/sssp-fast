@@ -3,6 +3,7 @@ use sssp_fast::{FloatNumber, Graph, SsspAlgorithm, SsspAlgorithmInfo, SsspBuffer
 
 pub use sssp_fast::cheeky_bellman_ford;
 pub use sssp_fast::cheeky_dijkstra;
+pub use sssp_fast::cheeky_floyd_warshall;
 
 pub fn run_sssp<T, N, G, A>(
     algo: &mut A,
