@@ -3,7 +3,7 @@ use crate::algorithms::{HasSsspConfig, SsspConfig};
 #[derive(Clone, Debug)]
 pub struct BellmanFordConfig {
     base: SsspConfig,
-    pub early_termination: bool, // Stop early if no relaxations occur in iter
+    pub early_termination: bool,
 }
 
 impl Default for BellmanFordConfig {

@@ -17,7 +17,7 @@ pub fn cheeky_bellman_ford<T, N, G>(
 where
     T: FloatNumber,
     N: Dim,
-    G: Graph<T>,
+    G: Graph<T> + Sync,
     DefaultAllocator: Allocator<N>,
 {
     BellmanFord::<T>::new().run(graph, source, buffers)
@@ -32,7 +32,7 @@ pub fn bellman_ford_to<T, N, G>(
 where
     T: FloatNumber,
     N: Dim,
-    G: Graph<T>,
+    G: Graph<T> + Sync,
     DefaultAllocator: Allocator<N>,
 {
     BellmanFord::<T>::with_config(BellmanFordConfig::with_target(target))

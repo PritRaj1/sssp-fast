@@ -1,8 +1,17 @@
 use crate::algorithms::{finalize_sssp, init_sssp, SsspAlgorithm, SsspAlgorithmInfo, SsspResult};
-use crate::utils::{relax, FloatNumber, Graph, RelaxResult, SsspBuffers};
+use crate::utils::{FloatNumber, Graph, SsspBuffers};
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim};
+use rayon::prelude::*;
 
 use super::config::BellmanFordConfig;
+
+/// Proposed edge relax (target vertex, new distance, parent).
+#[derive(Clone, Copy)]
+struct Proposal<T: FloatNumber> {
+    target: usize,
+    dist: T,
+    parent: usize,
+}
 
 #[derive(Debug)]
 pub struct BellmanFord<T: FloatNumber> {
@@ -54,7 +63,7 @@ impl<T, N, G> SsspAlgorithm<T, N, G> for BellmanFord<T>
 where
     T: FloatNumber,
     N: Dim,
-    G: Graph<T>,
+    G: Graph<T> + Sync,
     DefaultAllocator: Allocator<N>,
 {
     fn run(&mut self, graph: &G, source: usize, buffers: &mut SsspBuffers<T, N>) -> SsspResult<T> {
@@ -67,51 +76,130 @@ where
 
         // Relax all edges |V| - 1 times
         for _ in 0..n.saturating_sub(1) {
-            let mut any_improved = false;
             iterations += 1;
-
-            for u in 0..n {
-                if buffers.dist[u].is_infinite() {
-                    continue;
-                }
-
-                graph.for_each_out_edge(u, |v, w| {
-                    if let RelaxResult::Improved = relax(
-                        buffers.dist.as_mut_slice(),
-                        buffers.parent.as_mut_slice(),
-                        u,
-                        v,
-                        w,
-                    ) {
-                        any_improved = true;
-                    }
-                });
-            }
+            let proposals = collect_proposals(graph, buffers);
+            let any_improved = apply_proposals(buffers, &proposals);
 
             if self.config.early_termination && !any_improved {
                 break;
             }
         }
 
-        // Negative cycle detection: one more iter
-        let mut negative_cycle = false;
-        for u in 0..n {
-            if buffers.dist[u].is_infinite() {
-                continue;
-            }
-
-            graph.for_each_out_edge(u, |v, w| {
-                let new_dist = buffers.dist[u] + w;
-                if new_dist < buffers.dist[v] {
-                    negative_cycle = true;
-                }
-            });
-
-            if negative_cycle {
-                break;
-            }
-        }
+        let negative_cycle = detect_negative_cycle(graph, buffers);
 
         finalize_sssp(buffers, iterations, negative_cycle)
     }
+}
+
+/// Collect all edge relax proposals.
+fn collect_proposals<T, N, G>(
+    graph: &G,
+    buffers: &SsspBuffers<T, N>,
+) -> Vec<Proposal<T>>
+where
+    T: FloatNumber,
+    N: Dim,
+    G: Graph<T> + Sync,
+    DefaultAllocator: Allocator<N>,
+{
+    let n = graph.n();
+    let dist_slice = buffers.dist.as_slice();
+
+    (0..n)
+        .into_par_iter()
+        .flat_map(|u| {
+            let d_u = dist_slice[u];
+            if d_u.is_infinite() {
+                return Vec::new();
+            }
+
+            let mut local_proposals = Vec::new();
+            graph.for_each_out_edge(u, |v, w| {
+                let new_dist = d_u + w;
+                if new_dist < dist_slice[v] {
+                    local_proposals.push(Proposal {
+                        target: v,
+                        dist: new_dist,
+                        parent: u,
+                    });
+                }
+            });
+            local_proposals
+        })
+        .collect()
+}
+
+/// Apply best per target vertex. Returns true if improved.
+fn apply_proposals<T, N>(
+    buffers: &mut SsspBuffers<T, N>,
+    proposals: &[Proposal<T>],
+) -> bool
+where
+    T: FloatNumber,
+    N: Dim,
+    DefaultAllocator: Allocator<N>,
+{
+    if proposals.is_empty() {
+        return false;
+    }
+
+    let n = buffers.dist.len();
+
+    // Group by target, keep best (min dist) per target
+    let mut best: Vec<Option<Proposal<T>>> = vec![None; n];
+
+    for &prop in proposals {
+        match &mut best[prop.target] {
+            Some(existing) if prop.dist < existing.dist => {
+                *existing = prop;
+            }
+            None => {
+                best[prop.target] = Some(prop);
+            }
+            _ => {}
+        }
+    }
+
+    // Apply improvements
+    let mut any_improved = false;
+    for (v, opt) in best.into_iter().enumerate() {
+        if let Some(prop) = opt {
+            if prop.dist < buffers.dist[v] {
+                buffers.dist[v] = prop.dist;
+                buffers.parent[v] = prop.parent;
+                any_improved = true;
+            }
+        }
+    }
+
+    any_improved
+}
+
+fn detect_negative_cycle<T, N, G>(
+    graph: &G,
+    buffers: &SsspBuffers<T, N>,
+) -> bool
+where
+    T: FloatNumber,
+    N: Dim,
+    G: Graph<T> + Sync,
+    DefaultAllocator: Allocator<N>,
+{
+    let n = graph.n();
+    let dist_slice = buffers.dist.as_slice();
+
+    (0..n).into_par_iter().any(|u| {
+        let d_u = dist_slice[u];
+        if d_u.is_infinite() {
+            return false;
+        }
+
+        let mut has_cycle = false;
+        graph.for_each_out_edge(u, |v, w| {
+            if d_u + w < dist_slice[v] {
+                has_cycle = true;
+            }
+        });
+        has_cycle
+    })
 }
