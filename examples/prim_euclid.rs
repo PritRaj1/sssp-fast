@@ -4,7 +4,7 @@ use std::collections::BinaryHeap;
 use std::fs;
 
 use common::gif_utils::{png_to_gif_frame, setup_gif};
-use common::graphs::{euclidean_500, EuclideanGraph};
+use common::graphs::{random_euclidean_graph_connected, EuclideanGraph};
 use common::rendering::{
     render_graph_frame, GraphRenderParams, GRAPH_HEIGHT, GRAPH_WIDTH, TITLE_HEIGHT,
 };
@@ -12,7 +12,7 @@ use common::vis::GraphVisState;
 
 #[derive(Clone, Copy, PartialEq)]
 struct HeapEntry {
-    dist: u64,
+    key: u64,
     vertex: usize,
 }
 
@@ -20,7 +20,7 @@ impl Eq for HeapEntry {}
 
 impl Ord for HeapEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.dist.cmp(&self.dist)
+        other.key.cmp(&self.key)
     }
 }
 
@@ -30,113 +30,89 @@ impl PartialOrd for HeapEntry {
     }
 }
 
-fn dijkstra_visual(
-    graph: &EuclideanGraph,
-    start: usize,
-    end: usize,
-) -> (Vec<GraphVisState>, Vec<usize>) {
+fn prim_visual(graph: &EuclideanGraph, start: usize) -> (Vec<GraphVisState>, f64) {
     let n = graph.n_vertices();
-
-    // Scale to integers for heap
     const SCALE: f64 = 1_000_000.0;
 
-    let mut dist = vec![u64::MAX; n];
+    let mut key = vec![u64::MAX; n];
     let mut parent = vec![usize::MAX; n];
-    let mut visited = vec![false; n];
+    let mut weight_to = vec![0.0f64; n];
+    let mut in_mst = vec![false; n];
     let mut heap = BinaryHeap::new();
 
-    dist[start] = 0;
+    key[start] = 0;
     heap.push(HeapEntry {
-        dist: 0,
+        key: 0,
         vertex: start,
     });
 
+    let mut state = GraphVisState::new_mst(graph, start);
     let mut frames = Vec::new();
-    let mut vis_state = GraphVisState::new(graph, start, end);
-    frames.push(vis_state.clone());
+    let mut total_weight = 0.0f64;
+    frames.push(state.clone());
 
-    while let Some(HeapEntry { dist: d, vertex: u }) = heap.pop() {
-        if d > dist[u] || visited[u] {
+    while let Some(HeapEntry { key: k, vertex: u }) = heap.pop() {
+        if k > key[u] || in_mst[u] {
             continue;
         }
 
-        visited[u] = true;
+        in_mst[u] = true;
         let parent_vertex = if parent[u] != usize::MAX {
+            total_weight += weight_to[u];
             Some(parent[u])
         } else {
             None
         };
-        vis_state.mark_visited(u, parent_vertex);
+        state.mark_in_mst(u, parent_vertex);
 
-        if u == end {
-            break;
-        }
+        for &(v, w) in graph.neighbors(u) {
+            let edge_key = (w * SCALE) as u64;
 
-        for &(v, weight) in graph.neighbors(u) {
-            let edge_dist = (weight * SCALE) as u64;
-            let new_dist = dist[u].saturating_add(edge_dist);
-
-            if new_dist < dist[v] {
-                dist[v] = new_dist;
+            if !in_mst[v] && edge_key < key[v] {
+                key[v] = edge_key;
                 parent[v] = u;
+                weight_to[v] = w;
                 heap.push(HeapEntry {
-                    dist: new_dist,
+                    key: edge_key,
                     vertex: v,
                 });
-                vis_state.mark_in_queue(v);
+                state.mark_in_queue(v);
             }
         }
 
-        frames.push(vis_state.clone());
+        frames.push(state.clone());
     }
 
-    // Reconstruct path
-    let mut path = Vec::new();
-    if dist[end] < u64::MAX {
-        let mut current = end;
-        while current != usize::MAX {
-            path.push(current);
-            current = parent[current];
-        }
-        path.reverse();
-    }
-
-    vis_state.mark_path(&path);
     for _ in 0..15 {
-        frames.push(vis_state.clone());
+        frames.push(state.clone());
     }
 
-    (frames, path)
+    (frames, total_weight)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (graph, start, end) = euclidean_500();
+    let graph = random_euclidean_graph_connected(500, 6, 0.08, 42);
+    let start = 0;
 
-    println!(
-        "Graph: {} vertices, start={}, end={}",
-        graph.n_vertices(),
-        start,
-        end
-    );
+    println!("Graph: {} vertices", graph.n_vertices());
+    println!("Running Prim's MST.");
 
-    println!("Running Dijkstra.");
-    let (frames, path) = dijkstra_visual(&graph, start, end);
+    let (frames, total_weight) = prim_visual(&graph, start);
     let num_frames = frames.len();
-    let path_len = path.len().saturating_sub(1);
 
     let width = GRAPH_WIDTH as u16;
     let height = (GRAPH_HEIGHT + TITLE_HEIGHT) as u16;
 
-    let gif_path = "examples/gifs/dijkstra_euclid.gif";
+    let gif_path = "examples/gifs/prim_euclid.gif";
     let png_path = "examples/gifs/_temp_frame.png";
 
     let mut encoder = setup_gif(gif_path, width, height)?;
 
     for (i, frame) in frames.iter().enumerate() {
         let title = if i < num_frames - 15 {
-            format!("Dijkstra: Step {}", i)
+            format!("Prim MST: {} vertices", frame.max_visited)
         } else {
-            format!("Path: {} edges", path_len)
+            format!("MST: {:.4} total", total_weight)
         };
 
         render_graph_frame(
@@ -152,6 +128,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     fs::remove_file(png_path).ok();
+    println!("MST weight: {:.4}", total_weight);
     println!("Saved to {}", gif_path);
 
     Ok(())

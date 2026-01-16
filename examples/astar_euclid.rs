@@ -4,11 +4,11 @@ use std::collections::BinaryHeap;
 use std::fs;
 
 use common::gif_utils::{png_to_gif_frame, setup_gif};
-use common::graph_rendering::{
+use common::graphs::{euclidean_500, EuclideanGraph};
+use common::rendering::{
     render_graph_frame, GraphRenderParams, GRAPH_HEIGHT, GRAPH_WIDTH, TITLE_HEIGHT,
 };
-use common::graph_vis::GraphVisState;
-use common::graphs::{euclidean_500, EuclideanGraph};
+use common::vis::GraphVisState;
 
 const SCALE: f64 = 1_000_000.0;
 
