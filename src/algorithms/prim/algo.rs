@@ -81,10 +81,9 @@ where
             let key_u = entry.dist;
 
             // Skip if in MST alrdy (lazy deletion)
-            if buffers.in_mst[u]
-                && self.config.lazy_deletion {
-                    continue;
-                }
+            if buffers.in_mst[u] && self.config.lazy_deletion {
+                continue;
+            }
 
             // Skip stale
             if self.config.lazy_deletion && key_u > buffers.key[u] {
