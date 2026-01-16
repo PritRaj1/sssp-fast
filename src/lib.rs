@@ -9,7 +9,7 @@ pub use algorithms::{cheeky_dijkstra, dijkstra_to, Dijkstra, DijkstraConfig};
 pub use algorithms::{cheeky_floyd_warshall, FloydWarshall, FloydWarshallConfig};
 pub use algorithms::{cheeky_prim, Prim, PrimConfig};
 pub use algorithms::{ApspAlgorithm, ApspAlgorithmInfo, ApspResult};
-pub use algorithms::{BinaryHeap, FibonacciHeap, HeapEntry, PriorityQueue};
+pub use algorithms::{BinaryHeap, FibonacciHeap, HeapEntry, PairingHeap, PriorityQueue};
 pub use algorithms::{MstAlgorithm, MstAlgorithmInfo, MstResult};
 pub use algorithms::{SsspAlgorithm, SsspAlgorithmInfo, SsspResult};
 pub use utils::{
