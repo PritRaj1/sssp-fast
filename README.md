@@ -1,5 +1,10 @@
-# Single-source Shortest Path algorihtms
+# Single-source Shortest Path Algorithms
 
-## Ref.
+<table>
+  <tr>
+    <td align="center"><img src="examples/gifs/dijkstra_maze.gif" width="300"/><br/><b>Maze (Dijkstra's)</b></td>
+    <td align="center"><img src="examples/gifs/astar_euclid.gif" width="300"/><br/><b>Euclidean graph (A*)</b></td>
+  </tr>
+</table>
 
-- [Algorithm](https://arxiv.org/abs/2504.17033)
+Docs can be found [here](docs/README.md)!
