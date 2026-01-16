@@ -92,10 +92,7 @@ where
 }
 
 /// Collect all edge relax proposals.
-fn collect_proposals<T, N, G>(
-    graph: &G,
-    buffers: &SsspBuffers<T, N>,
-) -> Vec<Proposal<T>>
+fn collect_proposals<T, N, G>(graph: &G, buffers: &SsspBuffers<T, N>) -> Vec<Proposal<T>>
 where
     T: FloatNumber,
     N: Dim,
@@ -130,10 +127,7 @@ where
 }
 
 /// Apply best per target vertex. Returns true if improved.
-fn apply_proposals<T, N>(
-    buffers: &mut SsspBuffers<T, N>,
-    proposals: &[Proposal<T>],
-) -> bool
+fn apply_proposals<T, N>(buffers: &mut SsspBuffers<T, N>, proposals: &[Proposal<T>]) -> bool
 where
     T: FloatNumber,
     N: Dim,
@@ -175,10 +169,7 @@ where
     any_improved
 }
 
-fn detect_negative_cycle<T, N, G>(
-    graph: &G,
-    buffers: &SsspBuffers<T, N>,
-) -> bool
+fn detect_negative_cycle<T, N, G>(graph: &G, buffers: &SsspBuffers<T, N>) -> bool
 where
     T: FloatNumber,
     N: Dim,

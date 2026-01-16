@@ -2,6 +2,14 @@
 
 > Prim's algorithm finds a Minimum Spanning Tree (MST) of a connected, undirected, weighted graph.
 
+<table>
+  <tr>
+    <td align="center"><img src="../../examples/gifs/prim_maze.gif" width="300"/><br/><b>Maze</b></td>
+    <td align="center"><img src="../../examples/gifs/prim_euclid.gif" width="300"/><br/><b>Undirected Euclidean graph</b></td>
+  </tr>
+</table>
+
+
 |  | Complexity |
 |--------|-------|
 | Time | O((V + E) log V) |
