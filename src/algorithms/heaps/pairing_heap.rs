@@ -45,7 +45,7 @@ fn meld<T: FloatNumber>(
 fn merge_pairs<T: FloatNumber>(mut node: Option<Box<PairNode<T>>>) -> Option<Box<PairNode<T>>> {
     node.as_ref()?;
 
-    // Collect siblings into a vector for the two-pass merge
+    // Collect siblings (vec) for two-pass merge
     let mut nodes = Vec::new();
     while let Some(mut n) = node {
         node = n.sibling.take();
